@@ -3,6 +3,7 @@
 set -Eeuo pipefail
 
 VALID_OPERATORS="sriov metallb nmstate ptp pfstatus local-storage ingress-node-firewall"
+KONFLUX_DISABLE_DEFAULT_CATALOGS="${KONFLUX_DISABLE_DEFAULT_CATALOGS:-true}"
 
 ART_IMAGES_SOURCE="quay.io/redhat-user-workloads/ocp-art-tenant/art-images-share"
 ART_FBC_BASE="quay.io/redhat-user-workloads/ocp-art-tenant/art-fbc"
@@ -418,7 +419,11 @@ echo "  oc wait --for=condition=Updating mcp --all --timeout=60s || true"
 echo "  oc wait --for=condition=Updating=false mcp --all --timeout=${MCP_TIMEOUT} || true"
 
 print_step 9 "Create CatalogSource resources"
-echo "  oc patch operatorhub cluster -p '{\"spec\":{\"disableAllDefaultSources\":true}}' --type=merge"
+if [[ "$KONFLUX_DISABLE_DEFAULT_CATALOGS" == true ]]; then
+    echo "  oc patch operatorhub cluster -p '{\"spec\":{\"disableAllDefaultSources\":true}}' --type=merge"
+else
+    echo "  # Preserving existing default catalog configuration"
+fi
 for key in "${DEPLOYMENT_KEYS[@]}"; do
     catalog_name="${CATALOG_NAMES[$key]}"
     fbc_target="${FBC_TARGETS[$key]}"
@@ -463,4 +468,3 @@ done
 
 echo ""
 echo "Dry-run complete. Review the commands/YAML above to perform an actual deployment."
-

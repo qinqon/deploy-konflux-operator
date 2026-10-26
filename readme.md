@@ -223,6 +223,12 @@ The script follows these steps when deploying an operator:
 - `KONFLUX_DEPLOY_OPERATORS=false` - Skip all operator deployments entirely
 - `KONFLUX_DEPLOY_CATALOG_SOURCE=false` - Skip CatalogSource creation only
 - `KONFLUX_DEPLOY_SUBSCRIPTION=false` - Skip Subscription creation only (useful for deploying catalog without installing operators)
+- `KONFLUX_DISABLE_DEFAULT_CATALOGS=false` - Preserve the existing OperatorHub default catalog configuration. Defaults to `true`, which disables all default catalogs. Also supported by `deployment-dry-run.sh`.
+
+Use `KONFLUX_DISABLE_DEFAULT_CATALOGS=false` when other operators on the cluster
+need default catalogs, such as Network Observability using `redhat-operators`.
+This skips the OperatorHub patch; it does not re-enable catalogs that are already
+disabled. Konflux subscriptions still explicitly reference their custom catalogs.
 
 
 ---
@@ -230,6 +236,13 @@ The script follows these steps when deploying an operator:
 ## Usage
 
 ### Connected Cluster
+
+**Preserve default catalogs while installing NMState:**
+```bash
+KONFLUX_DISABLE_DEFAULT_CATALOGS=false ./deploy-operator.sh \
+  --operator nmstate \
+  --quay-auth /path/to/quay-auth.json
+```
 
 **Predefined Telco Operators:**
 ```bash

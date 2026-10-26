@@ -9,6 +9,7 @@ KONFLUX_DEPLOY_OPERATORS="${KONFLUX_DEPLOY_OPERATORS:-true}"
 # Env variables to control the deployment of CatalogSource and Subscription
 KONFLUX_DEPLOY_CATALOG_SOURCE="${KONFLUX_DEPLOY_CATALOG_SOURCE:-true}"
 KONFLUX_DEPLOY_SUBSCRIPTION="${KONFLUX_DEPLOY_SUBSCRIPTION:-true}"
+KONFLUX_DISABLE_DEFAULT_CATALOGS="${KONFLUX_DISABLE_DEFAULT_CATALOGS:-true}"
 
 # Color codes for logging
 CYAN='\033[0;36m'
@@ -903,10 +904,14 @@ if [[ "$DISCONNECTED" == true ]]; then
 fi
 
 # Disable default catalogs
-log "INFO" "Disabling default catalogs..."
-oc patch operatorhub cluster -p '{"spec": {"disableAllDefaultSources": true}}' --type=merge || \
-    { log "ERROR" "Failed to disable default catalogs"; exit 1; }
-log "SUCCESS" "Default catalogs disabled"
+if [[ "$KONFLUX_DISABLE_DEFAULT_CATALOGS" == true ]]; then
+    log "INFO" "Disabling default catalogs..."
+    oc patch operatorhub cluster -p '{"spec": {"disableAllDefaultSources": true}}' --type=merge || \
+        { log "ERROR" "Failed to disable default catalogs"; exit 1; }
+    log "SUCCESS" "Default catalogs disabled"
+else
+    log "INFO" "Preserving existing default catalog configuration"
+fi
 
 # Deploy operators
 log_step "DEPLOY" "Starting Operator Deployment"
@@ -974,4 +979,3 @@ if [[ ${#FAILED_OPERATORS[@]} -gt 0 ]]; then
 else
     log "SUCCESS" "All operators deployed successfully!"
 fi
-
